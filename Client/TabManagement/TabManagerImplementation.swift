@@ -69,6 +69,7 @@ class TabManagerImplementation: LegacyTabManager, Notifiable {
         }
 
         isRestoringTabs = true
+        AppEventQueue.started(.tabRestoration)
 
         guard tabMigration.shouldRunMigration else {
             logger.log("Not running the migration",
@@ -105,6 +106,7 @@ class TabManagerImplementation: LegacyTabManager, Notifiable {
                            level: .fatal,
                            category: .tabs)
                 isRestoringTabs = true
+                AppEventQueue.started(.tabRestoration)
                 migrateAndRestore()
             }
         }
@@ -112,8 +114,10 @@ class TabManagerImplementation: LegacyTabManager, Notifiable {
 
     private func buildTabRestore(window: WindowData?) async {
         defer {
-            isRestoringTabs = false
-            tabRestoreHasFinished = true
+            ensureMainThread { [weak self] in
+                self?.isRestoringTabs = false
+                AppEventQueue.completed(.tabRestoration)
+            }
         }
 
         let nonPrivateTabs = window?.tabData.filter { !$0.isPrivate }
@@ -222,7 +226,7 @@ class TabManagerImplementation: LegacyTabManager, Notifiable {
 
     override func preserveTabs() {
         // Only preserve tabs after the restore has finished
-        guard tabRestoreHasFinished else { return }
+        guard AppEventQueue.activityIsCompleted(.tabRestoration) else { return }
 
         logger.log("Preserve tabs started", level: .debug, category: .tabs)
         preserveTabs(forced: false)
@@ -299,9 +303,12 @@ class TabManagerImplementation: LegacyTabManager, Notifiable {
         }
     }
 
+    // FIXME: Had to add this temporarily to fix unit tests
+    var tabRestoreHasFinished: Bool = true
+
     private func saveAllTabData() {
         // Only preserve tabs after the restore has finished
-        guard tabRestoreHasFinished else { return }
+        guard AppEventQueue.activityIsCompleted(.tabRestoration) else { return }
 
         saveCurrentTabSessionData()
         preserveTabs(forced: true)
