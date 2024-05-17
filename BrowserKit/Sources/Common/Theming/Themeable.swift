@@ -22,7 +22,7 @@ extension Themeable {
         let mainQueue = OperationQueue.main
         themeObserver = notificationCenter.addObserver(name: .ThemeDidChange,
                                                        queue: mainQueue) { [weak self] notification in
-            guard let self else { return }            
+            guard let self else { return }
             let changedUUID = notification.windowUUID
             let windowUUID = self.currentWindowUUID
             guard changedUUID.isNilOrUnavailable || windowUUID == changedUUID else { return }
