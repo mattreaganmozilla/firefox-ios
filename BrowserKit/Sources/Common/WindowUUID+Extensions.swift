@@ -28,6 +28,12 @@ public extension WindowUUID {
     static let DefaultUITestingUUID = WindowUUID(uuidString: "44BA0B7D-097A-484D-8358-91A6E374451D")!
 }
 
+extension Optional where Wrapped == WindowUUID {
+    var isNilOrUnavailable: Bool {
+        self == nil || self == .unavailable
+    }
+}
+
 public extension WindowUUID {
     /// Key for setting (or obtaining) the windowUUID from notification userInfo payloads
     static let userInfoKey = "windowUUID"

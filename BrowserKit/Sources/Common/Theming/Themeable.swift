@@ -21,16 +21,19 @@ extension Themeable {
     public func listenForThemeChange(_ subview: UIView) {
         let mainQueue = OperationQueue.main
         themeObserver = notificationCenter.addObserver(name: .ThemeDidChange,
-                                                       queue: mainQueue) { [weak self] _ in
-            self?.applyTheme()
-            guard let uuidIdentifiable = subview as? ThemeUUIDIdentifiable else { return }
-            self?.updateThemeApplicableSubviews(subview, for: uuidIdentifiable.currentWindowUUID)
+                                                       queue: mainQueue) { [weak self] notification in
+            guard let self else { return }            
+            let changedUUID = notification.windowUUID
+            let windowUUID = self.currentWindowUUID
+            guard changedUUID.isNilOrUnavailable || windowUUID == changedUUID else { return }
+
+            self.applyTheme()
+            let theme = themeManager.currentTheme(for: windowUUID)
+            self.updateThemeApplicableSubviews(subview, with: theme)
         }
     }
 
-    public func updateThemeApplicableSubviews(_ view: UIView, for window: WindowUUID?) {
-        guard let window else { return }
-        let theme = themeManager.currentTheme(for: window)
+    public func updateThemeApplicableSubviews(_ view: UIView, with theme: Theme) {
         let themeViews = getAllSubviews(for: view, ofType: ThemeApplicable.self)
         themeViews.forEach { $0.applyTheme(theme: theme) }
     }
