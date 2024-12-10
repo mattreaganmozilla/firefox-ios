@@ -609,6 +609,11 @@ class LegacyTabManager: NSObject, FeatureFlaggable, TabManager, TabEventHandler 
             saveSessionData(forTab: tab)
         }
 
+        // Note: the way that this BackupCloseTab remains in memory creates a temporary
+        // "leak" of the associated Tab object. However, as soon as another tab is closed
+        // (and the `backupCloseTab` is set to a new value) the previous Tab is correctly
+        // deallocated. For now, keeping this code as-is though we may want to revisit this
+        // in the future. See also, comments on [FXIOS-10608].
         backupCloseTab = BackupCloseTab(tab: tab,
                                         restorePosition: removalIndex,
                                         isSelected: selectedTab?.tabUUID == tab.tabUUID)
