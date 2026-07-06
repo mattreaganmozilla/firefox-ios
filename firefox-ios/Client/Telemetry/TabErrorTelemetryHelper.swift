@@ -17,7 +17,7 @@ final class TabErrorTelemetryHelper {
     private let defaults: UserDefaultsInterface
     private let windowManager: WindowManager
     private let logger: Logger
-    
+
     /// Threshold (≥) for which we fire a tab loss event.
     private let tabLossCountThreshold = 3
 
