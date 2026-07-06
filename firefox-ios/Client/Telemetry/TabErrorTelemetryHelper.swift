@@ -17,6 +17,9 @@ final class TabErrorTelemetryHelper {
     private let defaults: UserDefaultsInterface
     private let windowManager: WindowManager
     private let logger: Logger
+    
+    /// Threshold (≥) for which we fire a tab loss event.
+    private let tabLossCountThreshold = 3
 
     private enum EntryPoint {
         case backgroundForeground
@@ -108,7 +111,7 @@ final class TabErrorTelemetryHelper {
             return
         }
 
-        if expectedTabCount > 1 && (expectedTabCount - currentTabCount) > 1 {
+        if expectedTabCount > 1 && (expectedTabCount - currentTabCount) >= tabLossCountThreshold {
             // Potential tab loss bug detected. Log a MetricKit error.
             sendTelemetryTabLossDetectedEvent(
                 expected: expectedTabCount,
